@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzj.admin.mapper.CustomerReturnListMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.lzj.admin.pojo.CustomerReturnList">
+        <id column="id" property="id" />
+        <result column="amount_paid" property="amountPaid" />
+        <result column="amount_payable" property="amountPayable" />
+        <result column="customer_return_date" property="customer_returnDate" />
+        <result column="customer_return_number" property="customer_returnNumber" />
+        <result column="remarks" property="remarks" />
+        <result column="state" property="state" />
+        <result column="user_id" property="userId" />
+        <result column="customer_id" property="customerId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, amount_paid, amount_payable, customer_return_date, customer_return_number, remarks, state, user_id, customer_id
+    </sql>
+    <select id="getNextCustomerReturnNumber" resultType="java.lang.String">
+        select max(customer_return_number) as customerReturnNumber
+        from t_customer_return_list
+        where to_days(customer_return_date) = to_days(now())
+    </select>
+
+    <select id="customerReturnList" resultType="com.lzj.admin.pojo.CustomerReturnList">
+        select tpl.*,u.user_name as userName,ts.name as customerName
+        from t_customer_return_list tpl
+        left join t_user u on u.id=tpl.user_id
+        left join t_customer ts on tpl.customer_id = ts.id
+
+        <where>
+            <if test="null !=customerReturnListQuery.customerReturnNumber and customerReturnListQuery.customerReturnNumber !=''">
+                tpl.customer_return_number=#{customerReturnListQuery.customerReturnNumber}
+            </if>
+            <if test="null !=customerReturnListQuery.customerId and customerReturnListQuery.customerId !=''">
+                and tpl.customer_id=#{customerReturnListQuery.customerId}
+            </if>
+            <if test="null !=customerReturnListQuery.state ">
+                and tpl.state=#{customerReturnListQuery.state}
+            </if>
+            <if test="null !=customerReturnListQuery.startDate and customerReturnListQuery.startDate !=''">
+                and tpl.customer_return_date &gt;= #{customerReturnListQuery.startDate}
+            </if>
+            <if test="null !=customerReturnListQuery.endDate and customerReturnListQuery.endDate !=''">
+                and tpl.customer_return_date &lt;= #{customerReturnListQuery.endDate}
+            </if>
+        </where>
+    </select>
+</mapper>
